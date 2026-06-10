@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS Column Extractor</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #333; background-color: #f9f9f9; }
+        textarea { width: 100%; height: 150px; margin: 10px 0 20px 0; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-family: monospace; }
+        .output-container { background: white; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        button { background-color: #0070f3; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0051a8; }
+        .controls { margin-bottom: 15px; font-weight: 500; }
+        input[type="number"] { width: 50px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; margin-left: 5px; }
+    </style>
+</head>
+<body>
+
+    <h2>GIS Column Extractor & Formatter</h2>
+    <p>Paste your copied ArcGIS Online table below. It will automatically isolate your target column and separate the values with commas.</p>
+
+    <div class="controls">
+        <label>Extract Column Number: <input type="number" id="colNum" value="2" min="1"></label>
+    </div>
+
+    <label><strong>Paste AGOL Table Data:</strong></label>
+    <textarea id="inputData" placeholder="Paste rows here...&#10;Example:&#10;101	Main St	Active&#10;102	Oak Ave	Pending"></textarea>
+
+    <div class="output-container">
+        <label><strong>Comma-Separated Output:</strong></label>
+        <textarea id="outputData" readonly placeholder="Output will appear here..."></textarea>
+        <button onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
+
+    <script>
+        const input = document.getElementById('inputData');
+        const output = document.getElementById('outputData');
+        const colInput = document.getElementById('colNum');
+
+        function processData() {
+            const rawText = input.value;
+            const colIndex = parseInt(colInput.value, 10) - 1; // Convert to 0-based index
+            
+            if (!rawText.trim()) {
+                output.value = '';
+                return;
+            }
+
+            // Split into rows, then split each row by tabs (standard copy-paste format from tables)
+            const lines = rawText.split(/\r?\n/);
+            const extractedValues = [];
+
+            lines.forEach(line => {
+                if (line.trim() === '') return; // Skip empty rows
+                const columns = line.split('\t');
+                
+                // If the column exists, grab it
+                if (columns[colIndex] !== undefined) {
+                    const value = columns[colIndex].trim();
+                    if (value) extractedValues.push(value);
+                }
+            });
+
+            output.value = extractedValues.join(', ');
+        }
+
+        function copyToClipboard() {
+            output.select();
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        }
+
+        // Listen for typing, pasting, or column setting changes
+        input.addEventListener('input', processData);
+        colInput.addEventListener('input', processData);
+    </script>
+</body>
+</html>
